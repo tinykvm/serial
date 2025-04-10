@@ -204,5 +204,37 @@ namespace serial {
 std::unique_ptr<lse::serial::SerialConnection> OpenSerialPort(const std::string& device, const lse::serial::SerialConfig& config) {
   return std::unique_ptr<SerialConnection>(new SerialWindows(device, config));
 }
+
+std::vector<std::string> ListSerialPorts(){
+  std::vector<std::wstring> wports;
+  HKEY hKey;
+  if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"Hardware\\DeviceMap\\SerialComm", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+      DWORD index = 0;
+      wchar_t valueName[256];
+      wchar_t data[256];
+      DWORD valueNameSize = sizeof(valueName);
+      DWORD dataSize = sizeof(data);
+      DWORD type;
+      while (RegEnumValueW(hKey, index, valueName, &valueNameSize, NULL, &type, (LPBYTE)data, &dataSize) == ERROR_SUCCESS) {
+          if (type == REG_SZ) {
+              wports.push_back(data);
+          }
+          index++;
+          valueNameSize = sizeof(valueName);
+          dataSize = sizeof(data);
+      }
+      RegCloseKey(hKey);
+  }
+
+  std::vector<std::string> ports;
+  for (const auto& wport : wports) {
+      int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wport[0], (int)wport.size(), NULL, 0, NULL, NULL);
+      std::string port(size_needed, 0);
+      WideCharToMultiByte(CP_UTF8, 0, &wport[0], (int)wport.size(), &port[0], size_needed, NULL, NULL);
+      ports.push_back(port);
+  }
+
+  return ports;
+}
 }  // namespace lse
 }  // namespace serial

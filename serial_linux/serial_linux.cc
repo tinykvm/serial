@@ -149,5 +149,27 @@ namespace serial {
 std::unique_ptr<lse::serial::SerialConnection> OpenSerialPort(const std::string& device, const lse::serial::SerialConfig& config) {
   return std::unique_ptr<lse::serial::SerialConnection>(new SerialLinux(device, config));
 }
+
+std::vector<std::string> ListSerialPorts() {
+    std::vector<std::string> ports;
+    std::vector<std::string> patterns = {"/dev/ttyS*", "/dev/ttyUSB*", "/dev/ttyAMA*"};
+
+    for (const auto& pattern : patterns) {
+        struct dirent **namelist;
+        int n = scandir("/dev", &namelist, [](const struct dirent *d) { return 1; }, alphasort);
+        if (n >= 0) {
+            for (int i = 0; i < n; i++) {
+                std::string entry = "/dev/" + std::string(namelist[i]->d_name);
+                std::regex re(pattern);
+                if (std::regex_search(entry, re)) {
+                    ports.push_back(entry);
+                }
+                free(namelist[i]);
+            }
+            free(namelist);
+        }
+    }
+    return ports;
+}
 }  // namespace lse
 }  // namespace serial

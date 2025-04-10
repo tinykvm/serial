@@ -55,6 +55,11 @@ struct SerialConnection {
  */
 std::unique_ptr<SerialConnection> OpenSerialPort(const std::string& device, const SerialConfig& config);
 
+/**
+ * @brief GetSerialDevices : Returns a list of serial devices
+ * @return list of serial devices
+ */
+std::vector<std::string> ListSerialPorts();
 }  // namespace lse
 }  // namespace serial
 #endif  // SERIAL_SERIAL_H_

@@ -11,6 +11,11 @@ lse::serial::SerialConfig SerialConfig() {
 }
 
 int main() {
+  std::vector<std::string> lists = lse::serial::ListSerialPorts();
+  for (size_t i = 0; i < lists.size(); i++) {
+    std::cout << "serial:" << lists[i] << std::endl;
+  }
+  
   const auto& serial_config = SerialConfig();
   std::unique_ptr<lse::serial::SerialConnection> serial_comm = lse::serial::OpenSerialPort("\\\\.\\COM30", serial_config);
   serial_comm->SetRts(0); // optional
